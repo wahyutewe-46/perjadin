@@ -156,7 +156,7 @@
           </div>
 
           <div class="mb-6">
-            <label class="block text-sm font-semibold mb-1">D.  –  KEGIATAN</label>
+            <label class="block text-sm font-semibold mb-1">D. FOTO – FOTO KEGIATAN</label>
             <div class="flex gap-2 items-center">
               <input type="file" id="formFoto" accept="image/*" multiple onchange="handleFileSelect(event)" class="w-full border p-2 rounded text-sm">
               <button type="button" onclick="clearAllPhotos()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold px-3 py-2.5 rounded shrink-0">Hapus Semua</button>
@@ -362,7 +362,7 @@
       document.getElementById('formTujuanLengkap').value = (survei && tujuan && kec) ? `${tujuan} ${survei} di Kecamatan ${kec}` : '';
     }
 
-    // FUNGSI KOMPRESI  (Mengecilkan ukuran Base64 agar tidak Error Server)
+    // FUNGSI KOMPRESI FOTO (Mengecilkan ukuran Base64 agar tidak Error Server)
     function compressImage(file, maxWidth = 1000, quality = 0.7) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -403,14 +403,14 @@
     }
 
     function removePhoto(index) { uploadedBase64Photos.splice(index, 1); renderPhotoPreviews(); }
-    function clearAllPhotos() { uploadedBase64Photos = []; renderPhotoPreviews(); document.getElementById('form').value = ''; }
+    function clearAllPhotos() { uploadedBase64Photos = []; renderPhotoPreviews(); document.getElementById('formFoto').value = ''; }
 
     function renderPhotoPreviews() {
       const container = document.getElementById('photoPreviewContainer');
-      const countInfo = document.getElementById('CountInfo');
+      const countInfo = document.getElementById('fotoCountInfo');
       container.innerHTML = '';
       if (uploadedBase64Photos.length > 0) {
-        countInfo.innerText = `✓ Total ${uploadedBase64Photos.length}  tersimpan`;
+        countInfo.innerText = `✓ Total ${uploadedBase64Photos.length} foto tersimpan`;
         countInfo.classList.remove('hidden');
       } else { countInfo.classList.add('hidden'); }
 
@@ -469,7 +469,7 @@
       document.getElementById('printUrutanKegiatan').innerText = data.urutanKegiatan;
       document.getElementById('printPejabat').innerText = data.pejabatDikunjungi;
 
-      const photoGrid = document.getElementById('printGrid');
+      const photoGrid = document.getElementById('printFotoGrid');
       photoGrid.innerHTML = '';
       const count = photosBase64OrUrls.length;
 
@@ -491,7 +491,7 @@
         div.className = 'border p-2 text-center bg-white w-full max-w-[175mm] flex flex-col items-center justify-center';
         div.innerHTML = `
           <img src="${fixImageUrl(src)}" class="w-full ${imgHeightClass} object-contain rounded mb-1 border bg-gray-50"/>
-          <span class="text-xs font-bold text-gray-700"> ${idx + 1}</span>
+          <span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>
         `;
         photoGrid.appendChild(div);
       });
