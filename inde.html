@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplikasi Laporan Perjalanan Dinas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      html, body { margin: 0 !important; padding: 0 !important; background: white !important; }
+      body * { visibility: hidden; }
+      #cetakArea, #cetakArea * { visibility: visible; }
+      #cetakArea { position: absolute; left: 0; top: 0; width: 210mm; }
+      .paper-page { width: 210mm; height: 296mm; max-height: 296mm; padding: 12mm 15mm; margin: 0 auto; box-sizing: border-box; page-break-after: always; overflow: hidden; }
+      .paper-page:last-child { page-break-after: avoid !important; }
+      .no-print { display: none !important; }
+    }
+    .paper-page { width: 210mm; min-height: 297mm; padding: 15mm; margin: 0 auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; font-family: Arial, sans-serif; }
+    table.report-table, table.report-table td, table.report-table th { border: 1px solid black; border-collapse: collapse; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+  <!-- AUTH SECTION -->
+  <div id="authSection" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-xl shadow-md no-print">
+    <h2 class="text-2xl font-bold text-center text-blue-700 mb-6" id="authTitle">Login Petugas</h2>
+    <div id="authAlert" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-sm"></div>
+
+    <form id="authForm" onsubmit="handleAuth(event)">
+      <div id="namaField" class="hidden mb-4">
+        <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
+        <input type="text" id="authNama" class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-1">Email</label>
+        <input type="email" id="authEmail" required class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-1">Password</label>
+        <input type="password" id="authPassword" required class="w-full border rounded p-2 focus:ring-2 focus:ring-blue-500">
+      </div>
+      <button type="submit" id="btnSubmitAuth" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded transition shadow">Login</button>
+    </form>
+
+    <div class="text-center mt-4">
+      <button onclick="toggleAuthMode()" id="btnToggleAuth" class="text-sm text-blue-600 hover:underline">Belum punya akun? Daftar</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP SECTION -->
+  <div id="appSection" class="hidden no-print">
+    <nav class="bg-blue-800 text-white px-6 py-4 shadow-md flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold">Laporan Perjalanan Dinas</h1>
+        <p class="text-xs text-blue-200" id="userProfileHeader"></p>
+      </div>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1.5 rounded">Logout</button>
+    </nav>
+
+    <div class="max-w-4xl mx-auto mt-6 px-4">
+      <div class="flex border-b border-gray-300 bg-white rounded-t-lg overflow-hidden shadow-sm">
+        <button onclick="switchTab(1)" id="tabBtn1" class="flex-1 py-3 font-semibold text-center border-b-2 border-blue-600 text-blue-600">Tab 1: Input Laporan</button>
+        <button onclick="switchTab(2)" id="tabBtn2" class="flex-1 py-3 font-semibold text-center text-gray-500 hover:text-blue-600">Tab 2: Riwayat Laporan</button>
+        <button onclick="switchTab(3)" id="tabBtn3" class="flex-1 py-3 font-semibold text-center text-gray-500 hover:text-blue-600">Tab 3: Profil Saya</button>
+      </div>
+
+      <!-- TAB 1 -->
+      <div id="tab1" class="bg-white p-6 rounded-b-lg shadow-md mb-12">
+        <h2 class="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">A. FORM ISIAN LAPORAN</h2>
+        <form id="laporanForm" onsubmit="submitLaporan(event)">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-1">Nama Petugas</label>
+            <input type="text" id="formNama" readonly class="w-full bg-gray-100 border rounded p-2 text-gray-700">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Survei</label>
+              <select id="formSurvei" onchange="updateTujuanText()" required class="w-full border rounded p-2">
+                <option value="">-- Pilih Survei --</option>
+                <option value="KSA Padi">KSA Padi</option>
+                <option value="KSA Jagung">KSA Jagung</option>
+                <option value="Ubinan Padi">Ubinan Padi</option>
+                <option value="Ubinan Palawija">Ubinan Palawija</option>
+                <option value="VPVN Hortikultura">VPVN Hortikultura</option>
+                <option value="SKB Bulanan">SKB Bulanan</option>
+                <option value="SKB Tahunan">SKB Tahunan</option>
+                <option value="Updating DPP UTL">Updating DPP UTL</option>
+                <option value="TPI">TPI</option>
+                <option value="LPTB">LPTB</option>
+                <option value="LTU">LTU</option>
+                <option value="Perusahaan Kehutanan">Perusahaan Kehutanan</option>
+                <option value="Survei Kesejahteraan Petani (SKP) 2026">Survei Kesejahteraan Petani (SKP) 2026</option>
+                <option value="SITASI 2026">SITASI 2026</option>
+                <option value="SKJG 2026">SKJG 2026</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Tujuan Survei</label>
+              <select id="formTujuanSurvei" onchange="updateTujuanText()" required class="w-full border rounded p-2">
+                <option value="">-- Pilih Tujuan --</option>
+                <option value="Pengumpulan data">Pengumpulan data</option>
+                <option value="Pengawasan/ Pemeriksaan Lapangan">Pengawasan/ Pemeriksaan Lapangan</option>
+                <option value="Supervisi Lapangan">Supervisi Lapangan</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Kecamatan</label>
+              <select id="formKecamatan" onchange="updateTujuanText()" required class="w-full border rounded p-2">
+                <option value="">-- Pilih Kecamatan --</option>
+                <option value="Margasari">Margasari</option>
+                <option value="Bumijawa">Bumijawa</option>
+                <option value="Bojong">Bojong</option>
+                <option value="Balapulang">Balapulang</option>
+                <option value="Pagerbarang">Pagerbarang</option>
+                <option value="Lebaksiu">Lebaksiu</option>
+                <option value="Jatinegara">Jatinegara</option>
+                <option value="Kedungbanteng">Kedungbanteng</option>
+                <option value="Pangkah">Pangkah</option>
+                <option value="Slawi">Slawi</option>
+                <option value="Dukuhwaru">Dukuhwaru</option>
+                <option value="Adiwerna">Adiwerna</option>
+                <option value="Dukuhturi">Dukuhturi</option>
+                <option value="Talang">Talang</option>
+                <option value="Tarub">Tarub</option>
+                <option value="Kramat">Kramat</option>
+                <option value="Suradadi">Suradadi</option>
+                <option value="Warureja">Warureja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-1">Preview Tujuan (Otomatis)</label>
+            <textarea id="formTujuanLengkap" readonly rows="2" class="w-full bg-blue-50 border border-blue-200 rounded p-2 text-blue-900 font-medium"></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">Jadwal Tanggal Mulai</label>
+              <input type="date" id="formTanggalMulai" required class="w-full border rounded p-2">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">Jadwal Tanggal Selesai (Opsional)</label>
+              <input type="date" id="formTanggalSelesai" class="w-full border rounded p-2">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-1">B. URUTAN KEGIATAN (RINGKASAN HASIL)</label>
+            <textarea id="formUrutanKegiatan" rows="5" required placeholder="Isikan ringkasan hasil..." class="w-full border rounded p-2"></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-1">C. PEJABAT DAN TEMPAT YANG DIKUNJUNGI</label>
+            <textarea id="formPejabat" rows="2" required placeholder="Isikan pejabat/tempat dikunjungi..." class="w-full border rounded p-2"></textarea>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-1">D. FOTO – FOTO KEGIATAN</label>
+            <div class="flex gap-2 items-center">
+              <input type="file" id="formFoto" accept="image/*" multiple onchange="handleFileSelect(event)" class="w-full border p-2 rounded text-sm">
+              <button type="button" onclick="clearAllPhotos()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold px-3 py-2.5 rounded shrink-0">Hapus Semua</button>
+            </div>
+            <p id="fotoCountInfo" class="text-xs text-blue-600 font-medium mt-1 hidden"></p>
+            <div id="photoPreviewContainer" class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"></div>
+          </div>
+
+          <button type="submit" id="btnSimpanLaporan" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded text-lg shadow">Simpan & Cetak Laporan</button>
+        </form>
+      </div>
+
+      <!-- TAB 2 -->
+      <div id="tab2" class="hidden bg-white p-6 rounded-b-lg shadow-md mb-12">
+        <h2 class="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">RIWAYAT LAPORAN SAYA</h2>
+        <div id="riwayatList" class="space-y-4"><p class="text-gray-500 text-center py-6">Memuat riwayat...</p></div>
+      </div>
+
+      <!-- TAB 3 -->
+      <div id="tab3" class="hidden bg-white p-6 rounded-b-lg shadow-md mb-12">
+        <h2 class="text-lg font-bold text-gray-700 mb-4 pb-2 border-b">PROFIL PETUGAS</h2>
+        <div class="space-y-3">
+          <p><strong>Nama:</strong> <span id="profNama"></span></p>
+          <p><strong>Email:</strong> <span id="profEmail"></span></p>
+          <p><strong>Jabatan:</strong> <span id="profJabatan"></span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CETAK AREA -->
+  <div id="cetakArea" class="hidden">
+    <div class="paper-page">
+      <h2 class="text-center font-bold text-xl mb-3 tracking-wide">LAPORAN KEGIATAN</h2>
+      <table class="report-table w-full mb-3 text-xs">
+        <tr class="font-bold text-center bg-gray-100"><td colspan="4" class="p-1">A. UMUM</td></tr>
+        <tr>
+          <td class="p-2 w-28 font-medium">1. Nama</td><td class="p-2 w-64 font-bold" id="printNama"></td>
+          <td class="p-2 w-52 font-medium">4. Anggaran/Kegiatan yang membiayai</td><td class="p-2 text-center font-bold w-16">054</td>
+        </tr>
+        <tr>
+          <td class="p-2 font-medium">2. Tujuan</td><td class="p-2 font-semibold" id="printTujuan"></td>
+          <td class="p-2 font-medium">5. Anggaran/Kegiatan yang diperiksa</td><td class="p-2 text-center font-bold">054</td>
+        </tr>
+        <tr>
+          <td class="p-2 font-medium">3. Jadwal</td><td class="p-2 font-semibold" id="printJadwal"></td>
+          <td class="p-2 font-medium">6. Tanda tangan Petugas</td><td class="p-2 h-12"></td>
+        </tr>
+      </table>
+      <table class="report-table w-full mb-3 text-xs">
+        <tr class="font-bold text-center bg-gray-100"><td class="p-1">B. URUTAN KEGIATAN (RINGKASAN HASIL)</td></tr>
+        <tr><td class="p-3 align-top h-[410px] whitespace-pre-line text-sm leading-relaxed" id="printUrutanKegiatan"></td></tr>
+      </table>
+      <table class="report-table w-full text-xs">
+        <tr class="font-bold text-center bg-gray-100"><td class="p-1">C. PEJABAT DAN TEMPAT YANG DIKUNJUNGI</td></tr>
+        <tr><td class="p-3 align-top h-[120px] whitespace-pre-line text-sm leading-relaxed" id="printPejabat"></td></tr>
+      </table>
+    </div>
+    <div class="paper-page">
+      <table class="report-table w-full h-full text-xs">
+        <tr class="font-bold text-center bg-gray-100 h-8"><td class="p-1">D. DOKUMENTASI</td></tr>
+        <tr><td class="p-4 align-middle h-[250mm]"><div id="printFotoGrid"></div></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // PASTE URL WEB APP APPS SCRIPT ANDA DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzKjkcetYrnMs8GgKmQ73gQ_6qvsDTIvFjShC5z3BX9MzCBPuKFL8aLr6iHO4oZ8I/exec";
+
+    let currentUser = null;
+    let isRegisterMode = false;
+    let uploadedBase64Photos = [];
+
+    window.onload = function() {
+      const savedUser = localStorage.getItem('perjadin_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showApp();
+      }
+    };
+
+    async function callApi(payload) {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    }
+
+    function formatTanggalIndo(dateStr) {
+      if (!dateStr) return '';
+      const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const parts = String(dateStr).split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parseInt(parts[2], 10)} ${bulanIndo[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+    }
+
+    function formatJadwalLengkap(tglMulai, tglSelesai) {
+      const startFormatted = formatTanggalIndo(tglMulai);
+      if (!tglSelesai || tglSelesai === tglMulai) return startFormatted;
+      const pStart = String(tglMulai).split('-');
+      const pEnd = String(tglSelesai).split('-');
+      if (pStart.length === 3 && pEnd.length === 3 && pStart[0] === pEnd[0] && pStart[1] === pEnd[1]) {
+        const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return `${parseInt(pStart[2], 10)} s/d ${parseInt(pEnd[2], 10)} ${bulanIndo[parseInt(pStart[1], 10) - 1]} ${pStart[0]}`;
+      }
+      return `${startFormatted} s/d ${formatTanggalIndo(tglSelesai)}`;
+    }
+
+    function fixImageUrl(url) {
+      if (!url) return '';
+      const strUrl = String(url).trim();
+      if (strUrl.startsWith('data:image')) return strUrl;
+      if (strUrl.includes('drive.google.com/file/d/')) {
+        const match = strUrl.match(/\/d\/([^\/]+)/);
+        if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+      }
+      return strUrl;
+    }
+
+    function toggleAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      document.getElementById('authTitle').innerText = isRegisterMode ? 'Daftar Akun Petugas' : 'Login Petugas';
+      document.getElementById('namaField').classList.toggle('hidden', !isRegisterMode);
+      document.getElementById('btnSubmitAuth').innerText = isRegisterMode ? 'Daftar' : 'Login';
+      document.getElementById('btnToggleAuth').innerText = isRegisterMode ? 'Sudah punya akun? Login' : 'Belum punya akun? Daftar';
+      document.getElementById('authAlert').classList.add('hidden');
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+      const nama = document.getElementById('authNama').value;
+      const alertBox = document.getElementById('authAlert');
+      const btn = document.getElementById('btnSubmitAuth');
+
+      alertBox.classList.add('hidden');
+      btn.innerText = 'Memproses...';
+      btn.disabled = true;
+
+      try {
+        const action = isRegisterMode ? 'register' : 'login';
+        const res = await callApi({ action, email, password: pass, nama, jabatan: 'Petugas' });
+        btn.innerText = isRegisterMode ? 'Daftar' : 'Login';
+        btn.disabled = false;
+
+        if (res.success) {
+          currentUser = res.user;
+          localStorage.setItem('perjadin_user', JSON.stringify(currentUser));
+          showApp();
+        } else {
+          alertBox.innerText = res.message;
+          alertBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        btn.innerText = isRegisterMode ? 'Daftar' : 'Login';
+        btn.disabled = false;
+        alertBox.innerText = 'Error Koneksi Server';
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    function showApp() {
+      document.getElementById('authSection').classList.add('hidden');
+      document.getElementById('appSection').classList.remove('hidden');
+      document.getElementById('userProfileHeader').innerText = `${currentUser.nama} (${currentUser.email})`;
+      document.getElementById('formNama').value = currentUser.nama;
+      document.getElementById('profNama').innerText = currentUser.nama;
+      document.getElementById('profEmail').innerText = currentUser.email;
+      document.getElementById('profJabatan').innerText = currentUser.jabatan || 'Petugas';
+    }
+
+    function logout() {
+      localStorage.removeItem('perjadin_user');
+      location.reload();
+    }
+
+    function switchTab(num) {
+      [1, 2, 3].forEach(n => {
+        document.getElementById(`tab${n}`).classList.add('hidden');
+        document.getElementById(`tabBtn${n}`).className = "flex-1 py-3 font-semibold text-center text-gray-500 hover:text-blue-600";
+      });
+      document.getElementById(`tab${num}`).classList.remove('hidden');
+      document.getElementById(`tabBtn${num}`).className = "flex-1 py-3 font-semibold text-center border-b-2 border-blue-600 text-blue-600";
+      if (num === 2) loadRiwayat();
+    }
+
+    function updateTujuanText() {
+      const survei = document.getElementById('formSurvei').value;
+      const tujuan = document.getElementById('formTujuanSurvei').value;
+      const kec = document.getElementById('formKecamatan').value;
+      document.getElementById('formTujuanLengkap').value = (survei && tujuan && kec) ? `${tujuan} ${survei} di Kecamatan ${kec}` : '';
+    }
+
+    function handleFileSelect(e) {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      let count = 0;
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          uploadedBase64Photos.push(evt.target.result);
+          count++;
+          if (count === files.length) { renderPhotoPreviews(); e.target.value = ''; }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePhoto(index) { uploadedBase64Photos.splice(index, 1); renderPhotoPreviews(); }
+    function clearAllPhotos() { uploadedBase64Photos = []; renderPhotoPreviews(); document.getElementById('formFoto').value = ''; }
+
+    function renderPhotoPreviews() {
+      const container = document.getElementById('photoPreviewContainer');
+      const countInfo = document.getElementById('fotoCountInfo');
+      container.innerHTML = '';
+      if (uploadedBase64Photos.length > 0) {
+        countInfo.innerText = `✓ Total ${uploadedBase64Photos.length} foto tersimpan`;
+        countInfo.classList.remove('hidden');
+      } else { countInfo.classList.add('hidden'); }
+
+      uploadedBase64Photos.forEach((src, idx) => {
+        const div = document.createElement('div');
+        div.className = 'relative border rounded p-1 text-center bg-gray-50';
+        div.innerHTML = `<img src="${fixImageUrl(src)}" class="w-full h-28 object-cover rounded mb-1" /><button type="button" onclick="removePhoto(${idx})" class="text-xs text-red-600 font-bold hover:underline">Hapus</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    async function submitLaporan(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSimpanLaporan');
+      btn.innerText = 'Menyimpan & Memproses...';
+      btn.disabled = true;
+
+      const tglMulai = document.getElementById('formTanggalMulai').value;
+      const tglSelesai = document.getElementById('formTanggalSelesai').value;
+
+      const payload = {
+        action: 'saveLaporan',
+        data: {
+          email: currentUser.email,
+          nama: currentUser.nama,
+          survei: document.getElementById('formSurvei').value,
+          tujuanSurvei: document.getElementById('formTujuanSurvei').value,
+          kecamatan: document.getElementById('formKecamatan').value,
+          tujuanLengkap: document.getElementById('formTujuanLengkap').value,
+          tanggalMulai: tglMulai,
+          tanggalSelesai: tglSelesai,
+          urutanKegiatan: document.getElementById('formUrutanKegiatan').value,
+          pejabatDikunjungi: document.getElementById('formPejabat').value,
+          photos: uploadedBase64Photos
+        }
+      };
+
+      try {
+        const res = await callApi(payload);
+        btn.innerText = 'Simpan & Cetak Laporan';
+        btn.disabled = false;
+        if (res.success) {
+          cetakLaporanDirect(payload.data, uploadedBase64Photos, formatJadwalLengkap(tglMulai, tglSelesai));
+        } else { alert('Gagal menyimpan: ' + res.message); }
+      } catch (err) {
+        btn.innerText = 'Simpan & Cetak Laporan';
+        btn.disabled = false;
+        alert('Error Server');
+      }
+    }
+
+    function cetakLaporanDirect(data, photosBase64OrUrls, jadwalStr) {
+      document.getElementById('printNama').innerText = data.nama;
+      document.getElementById('printTujuan').innerText = data.tujuanLengkap;
+      document.getElementById('printJadwal').innerText = jadwalStr;
+      document.getElementById('printUrutanKegiatan').innerText = data.urutanKegiatan;
+      document.getElementById('printPejabat').innerText = data.pejabatDikunjungi;
+
+      const photoGrid = document.getElementById('printFotoGrid');
+      photoGrid.innerHTML = '';
+      const count = photosBase64OrUrls.length;
+
+      if (count === 1) {
+        photoGrid.className = 'flex flex-col items-center justify-center h-full';
+        photoGrid.innerHTML = `<div class="border p-3 text-center bg-white w-3/4 mx-auto"><img src="${fixImageUrl(photosBase64OrUrls[0])}" class="w-full h-[135mm] object-cover rounded mb-2 border"/><span class="text-xs font-bold text-gray-700">Foto 1</span></div>`;
+      } else {
+        photoGrid.className = 'grid grid-cols-2 gap-3 items-center';
+        photosBase64OrUrls.forEach((src, idx) => {
+          const div = document.createElement('div');
+          div.className = 'border p-2 text-center bg-white';
+          div.innerHTML = `<img src="${fixImageUrl(src)}" class="w-full h-[90mm] object-cover rounded mb-1 border"/><span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>`;
+          photoGrid.appendChild(div);
+        });
+      }
+
+      document.getElementById('cetakArea').classList.remove('hidden');
+      window.print();
+      setTimeout(() => { document.getElementById('cetakArea').classList.add('hidden'); }, 1000);
+    }
+
+    async function loadRiwayat() {
+      const container = document.getElementById('riwayatList');
+      container.innerHTML = '<p class="text-gray-500 text-center py-4">Memuat data...</p>';
+
+      try {
+        const res = await callApi({ action: 'getRiwayat', email: currentUser.email });
+        if (!res.data || res.data.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center py-4">Belum ada laporan.</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+        res.data.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'border rounded-lg p-4 shadow-sm bg-gray-50 flex justify-between items-center';
+          card.innerHTML = `
+            <div>
+              <h4 class="font-bold text-blue-900">${item.tujuanLengkap}</h4>
+              <p class="text-xs text-gray-600 mt-1">Jadwal: ${formatJadwalLengkap(item.tanggalMulai, item.tanggalSelesai)}</p>
+            </div>
+            <button onclick='cetakDariRiwayat(${JSON.stringify(item)})' class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded shadow">Cetak PDF</button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = '<p class="text-red-500 text-center py-4">Gagal memuat riwayat.</p>';
+      }
+    }
+
+    function cetakDariRiwayat(item) {
+      cetakLaporanDirect(item, item.photos || [], formatJadwalLengkap(item.tanggalMulai, item.tanggalSelesai));
+    }
+  </script>
+</body>
+</html>
