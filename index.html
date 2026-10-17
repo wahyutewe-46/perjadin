@@ -215,17 +215,23 @@
         <tr><td class="p-3 align-top h-[120px] whitespace-pre-line text-sm leading-relaxed" id="printPejabat"></td></tr>
       </table>
     </div>
+    
+    <!-- HALAMAN 2: DOKUMENTASI VERTIKAL (ATAS & BAWAH) -->
     <div class="paper-page">
       <table class="report-table w-full h-full text-xs">
         <tr class="font-bold text-center bg-gray-100 h-8"><td class="p-1">D. DOKUMENTASI</td></tr>
-        <tr><td class="p-4 align-middle h-[250mm]"><div id="printFotoGrid"></div></td></tr>
+        <tr>
+          <td class="p-3 align-middle h-[250mm]">
+            <div id="printFotoGrid"></div>
+          </td>
+        </tr>
       </table>
     </div>
   </div>
 
   <script>
     // PASTE URL WEB APP APPS SCRIPT ANDA DI SINI
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzKjkcetYrnMs8GgKmQ73gQ_6qvsDTIvFjShC5z3BX9MzCBPuKFL8aLr6iHO4oZ8I/exec";
+    const SCRIPT_URL = "URL_WEB_APP_ANDA_DISINI";
 
     let currentUser = null;
     let isRegisterMode = false;
@@ -429,6 +435,7 @@
       }
     }
 
+    // FUNGSI CETAK LAPORAN DENGAN LAYOUT FOTO VERTIKAL (ATAS & BAWAH)
     function cetakLaporanDirect(data, photosBase64OrUrls, jadwalStr) {
       document.getElementById('printNama').innerText = data.nama;
       document.getElementById('printTujuan').innerText = data.tujuanLengkap;
@@ -440,18 +447,30 @@
       photoGrid.innerHTML = '';
       const count = photosBase64OrUrls.length;
 
+      // Layout Vertikal (Atas & Bawah)
+      photoGrid.className = 'flex flex-col items-center justify-center gap-3 h-full w-full';
+
+      // Penyesuaian tinggi foto agar pas dalam 1 halaman dokumentasi (250mm)
+      let imgHeightClass = 'h-[110mm]';
       if (count === 1) {
-        photoGrid.className = 'flex flex-col items-center justify-center h-full';
-        photoGrid.innerHTML = `<div class="border p-3 text-center bg-white w-3/4 mx-auto"><img src="${fixImageUrl(photosBase64OrUrls[0])}" class="w-full h-[135mm] object-cover rounded mb-2 border"/><span class="text-xs font-bold text-gray-700">Foto 1</span></div>`;
-      } else {
-        photoGrid.className = 'grid grid-cols-2 gap-3 items-center';
-        photosBase64OrUrls.forEach((src, idx) => {
-          const div = document.createElement('div');
-          div.className = 'border p-2 text-center bg-white';
-          div.innerHTML = `<img src="${fixImageUrl(src)}" class="w-full h-[90mm] object-cover rounded mb-1 border"/><span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>`;
-          photoGrid.appendChild(div);
-        });
+        imgHeightClass = 'h-[160mm]';
+      } else if (count === 2) {
+        imgHeightClass = 'h-[105mm]';
+      } else if (count === 3) {
+        imgHeightClass = 'h-[72mm]';
+      } else if (count >= 4) {
+        imgHeightClass = 'h-[52mm]';
       }
+
+      photosBase64OrUrls.forEach((src, idx) => {
+        const div = document.createElement('div');
+        div.className = 'border p-2 text-center bg-white w-full max-w-[175mm] flex flex-col items-center justify-center';
+        div.innerHTML = `
+          <img src="${fixImageUrl(src)}" class="w-full ${imgHeightClass} object-contain rounded mb-1 border bg-gray-50"/>
+          <span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>
+        `;
+        photoGrid.appendChild(div);
+      });
 
       document.getElementById('cetakArea').classList.remove('hidden');
       window.print();
