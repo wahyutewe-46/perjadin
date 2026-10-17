@@ -208,7 +208,7 @@
       </table>
       <table class="report-table w-full mb-3 text-xs">
         <tr class="font-bold text-center bg-gray-100"><td class="p-1">B. URUTAN KEGIATAN (RINGKASAN HASIL)</td></tr>
-        <tr><td class="p-3 align-top h-[410px] whitespace-pre-line text-sm leading-relaxed text-justify" id="printUrutanKegiatan"></td></tr>
+        <tr><td class="p-3 align-top h-[410px] whitespace-pre-line text-sm leading-relaxed" id="printUrutanKegiatan"></td></tr>
       </table>
       <table class="report-table w-full text-xs">
         <tr class="font-bold text-center bg-gray-100"><td class="p-1">C. PEJABAT DAN TEMPAT YANG DIKUNJUNGI</td></tr>
@@ -216,12 +216,11 @@
       </table>
     </div>
     
-    <!-- HALAMAN 2: DOKUMENTASI VERTIKAL DI BAGIAN ATAS -->
     <div class="paper-page">
       <table class="report-table w-full h-full text-xs">
         <tr class="font-bold text-center bg-gray-100 h-8"><td class="p-1">D. DOKUMENTASI</td></tr>
         <tr>
-          <td class="p-3 align-top h-[250mm]">
+          <td class="p-3 align-middle h-[250mm]">
             <div id="printFotoGrid"></div>
           </td>
         </tr>
@@ -246,7 +245,7 @@
     };
 
     async function callApi(payload) {
-      if (SCRIPT_URL.includes("URL_WEB_APP_ANDA_DISINI")) {
+      if (SCRIPT_URL.includes("https://script.google.com/macros/s/AKfycbzzKjkcetYrnMs8GgKmQ73gQ_6qvsDTIvFjShC5z3BX9MzCBPuKFL8aLr6iHO4oZ8I/exec")) {
         throw new Error("SCRIPT_URL belum diganti dengan Web App URL Google Apps Script Anda.");
       }
       const response = await fetch(SCRIPT_URL, {
@@ -262,7 +261,7 @@
       const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
       const parts = String(dateStr).split('-');
       if (parts.length !== 3) return dateStr;
-      return `\${parseInt(parts[2], 10)} ${bulanIndo[parseInt(parts[1], 10) - 1]}${parts[0]}`;
+      return `${parseInt(parts[2], 10)} ${bulanIndo[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
     }
 
     function formatJadwalLengkap(tglMulai, tglSelesai) {
@@ -272,9 +271,9 @@
       const pEnd = String(tglSelesai).split('-');
       if (pStart.length === 3 && pEnd.length === 3 && pStart[0] === pEnd[0] && pStart[1] === pEnd[1]) {
         const bulanIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        return `${parseInt(pStart[2], 10)} s/d${parseInt(pEnd[2], 10)} ${bulanIndo[parseInt(pStart[1], 10) - 1]}${pStart[0]}`;
+        return `${parseInt(pStart[2], 10)} s/d ${parseInt(pEnd[2], 10)} ${bulanIndo[parseInt(pStart[1], 10) - 1]} ${pStart[0]}`;
       }
-      return `${startFormatted} s/d${formatTanggalIndo(tglSelesai)}`;
+      return `${startFormatted} s/d ${formatTanggalIndo(tglSelesai)}`;
     }
 
     function fixImageUrl(url) {
@@ -283,7 +282,7 @@
       if (strUrl.startsWith('data:image')) return strUrl;
       if (strUrl.includes('drive.google.com/file/d/')) {
         const match = strUrl.match(/\/d\/([^\/]+)/);
-        if (match && match[1]) return `https://lh3.googleusercontent.com/d/\${match[1]}`;
+        if (match && match[1]) return `https://lh3.googleusercontent.com/d/${match[1]}`;
       }
       return strUrl;
     }
@@ -348,11 +347,11 @@
 
     function switchTab(num) {
       [1, 2, 3].forEach(n => {
-        document.getElementById(`tab\${n}`).classList.add('hidden');
-        document.getElementById(`tabBtn\${n}`).className = "flex-1 py-3 font-semibold text-center text-gray-500 hover:text-blue-600";
+        document.getElementById(`tab${n}`).classList.add('hidden');
+        document.getElementById(`tabBtn${n}`).className = "flex-1 py-3 font-semibold text-center text-gray-500 hover:text-blue-600";
       });
-      document.getElementById(`tab\${num}`).classList.remove('hidden');
-      document.getElementById(`tabBtn\${num}`).className = "flex-1 py-3 font-semibold text-center border-b-2 border-blue-600 text-blue-600";
+      document.getElementById(`tab${num}`).classList.remove('hidden');
+      document.getElementById(`tabBtn${num}`).className = "flex-1 py-3 font-semibold text-center border-b-2 border-blue-600 text-blue-600";
       if (num === 2) loadRiwayat();
     }
 
@@ -360,9 +359,10 @@
       const survei = document.getElementById('formSurvei').value;
       const tujuan = document.getElementById('formTujuanSurvei').value;
       const kec = document.getElementById('formKecamatan').value;
-      document.getElementById('formTujuanLengkap').value = (survei && tujuan && kec) ? `\${tujuan} ${survei} di Kecamatan${kec}` : '';
+      document.getElementById('formTujuanLengkap').value = (survei && tujuan && kec) ? `${tujuan} ${survei} di Kecamatan ${kec}` : '';
     }
 
+    // FUNGSI KOMPRESI FOTO (Mengecilkan ukuran Base64 agar tidak Error Server)
     function compressImage(file, maxWidth = 1000, quality = 0.7) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -410,14 +410,14 @@
       const countInfo = document.getElementById('fotoCountInfo');
       container.innerHTML = '';
       if (uploadedBase64Photos.length > 0) {
-        countInfo.innerText = `✓ Total \${uploadedBase64Photos.length} foto tersimpan`;
+        countInfo.innerText = `✓ Total ${uploadedBase64Photos.length} foto tersimpan`;
         countInfo.classList.remove('hidden');
       } else { countInfo.classList.add('hidden'); }
 
       uploadedBase64Photos.forEach((src, idx) => {
         const div = document.createElement('div');
         div.className = 'relative border rounded p-1 text-center bg-gray-50';
-        div.innerHTML = `<img src="\${fixImageUrl(src)}" class="w-full h-28 object-cover rounded mb-1" /><button type="button" onclick="removePhoto(\${idx})" class="text-xs text-red-600 font-bold hover:underline">Hapus</button>`;
+        div.innerHTML = `<img src="${fixImageUrl(src)}" class="w-full h-28 object-cover rounded mb-1" /><button type="button" onclick="removePhoto(${idx})" class="text-xs text-red-600 font-bold hover:underline">Hapus</button>`;
         container.appendChild(div);
       });
     }
@@ -462,7 +462,6 @@
       }
     }
 
-    // FUNGSI CETAK LAPORAN DENGAN LAYOUT FOTO DI ATAS (RATA ATAS)
     function cetakLaporanDirect(data, photosBase64OrUrls, jadwalStr) {
       document.getElementById('printNama').innerText = data.nama;
       document.getElementById('printTujuan').innerText = data.tujuanLengkap;
@@ -474,8 +473,7 @@
       photoGrid.innerHTML = '';
       const count = photosBase64OrUrls.length;
 
-      // Layout Vertikal Menempel ke Atas (justify-start)
-      photoGrid.className = 'flex flex-col items-center justify-start gap-3 h-full w-full';
+      photoGrid.className = 'flex flex-col items-center justify-center gap-3 h-full w-full';
 
       let imgHeightClass = 'h-[110mm]';
       if (count === 1) {
@@ -493,7 +491,7 @@
         div.className = 'border p-2 text-center bg-white w-full max-w-[175mm] flex flex-col items-center justify-center';
         div.innerHTML = `
           <img src="${fixImageUrl(src)}" class="w-full ${imgHeightClass} object-contain rounded mb-1 border bg-gray-50"/>
-          <span class="text-xs font-bold text-gray-700">Foto \${idx + 1}</span>
+          <span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>
         `;
         photoGrid.appendChild(div);
       });
@@ -520,5 +518,21 @@
           card.className = 'border rounded-lg p-4 shadow-sm bg-gray-50 flex justify-between items-center';
           card.innerHTML = `
             <div>
-              <h4 class="font-bold text-blue-900">\${item.tujuanLengkap}</h4>
-              <p class="text-xs text-gray-600 mt-1">Jadwal: \${formatJadwalLengkap(item.tanggalMulai, item.tanggalSeles
+              <h4 class="font-bold text-blue-900">${item.tujuanLengkap}</h4>
+              <p class="text-xs text-gray-600 mt-1">Jadwal: ${formatJadwalLengkap(item.tanggalMulai, item.tanggalSelesai)}</p>
+            </div>
+            <button onclick='cetakDariRiwayat(${JSON.stringify(item)})' class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded shadow">Cetak PDF</button>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = '<p class="text-red-500 text-center py-4">Gagal memuat riwayat.</p>';
+      }
+    }
+
+    function cetakDariRiwayat(item) {
+      cetakLaporanDirect(item, item.photos || [], formatJadwalLengkap(item.tanggalMulai, item.tanggalSelesai));
+    }
+  </script>
+</body>
+</html>
