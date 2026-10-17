@@ -208,7 +208,7 @@
       </table>
       <table class="report-table w-full mb-3 text-xs">
         <tr class="font-bold text-center bg-gray-100"><td class="p-1">B. URUTAN KEGIATAN (RINGKASAN HASIL)</td></tr>
-        <tr><td class="p-3 align-top h-[410px] whitespace-pre-line text-sm leading-relaxed" id="printUrutanKegiatan"></td></tr>
+        <tr><td class="p-3 align-top h-[410px] whitespace-pre-line text-sm leading-relaxed text-justify" id="printUrutanKegiatan"></td></tr>
       </table>
       <table class="report-table w-full text-xs">
         <tr class="font-bold text-center bg-gray-100"><td class="p-1">C. PEJABAT DAN TEMPAT YANG DIKUNJUNGI</td></tr>
@@ -216,11 +216,12 @@
       </table>
     </div>
     
+    <!-- HALAMAN 2: DOKUMENTASI VERTIKAL RATA ATAS (TOP) -->
     <div class="paper-page">
       <table class="report-table w-full h-full text-xs">
         <tr class="font-bold text-center bg-gray-100 h-8"><td class="p-1">D. DOKUMENTASI</td></tr>
         <tr>
-          <td class="p-3 align-top h-[250mm]">
+          <td class="p-3" style="vertical-align: top;">
             <div id="printFotoGrid"></div>
           </td>
         </tr>
@@ -362,7 +363,6 @@
       document.getElementById('formTujuanLengkap').value = (survei && tujuan && kec) ? `${tujuan} ${survei} di Kecamatan ${kec}` : '';
     }
 
-    // FUNGSI KOMPRESI FOTO (Mengecilkan ukuran Base64 agar tidak Error Server)
     function compressImage(file, maxWidth = 1000, quality = 0.7) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -462,6 +462,7 @@
       }
     }
 
+    // FUNGSI CETAK LAPORAN - FOTO MENEMPEL DI TOP TANPA TULISAN FOTO 1, FOTO 2
     function cetakLaporanDirect(data, photosBase64OrUrls, jadwalStr) {
       document.getElementById('printNama').innerText = data.nama;
       document.getElementById('printTujuan').innerText = data.tujuanLengkap;
@@ -473,25 +474,25 @@
       photoGrid.innerHTML = '';
       const count = photosBase64OrUrls.length;
 
-      photoGrid.className = 'flex flex-col items-center justify-center gap-3 h-full w-full';
+      // Layout Vertikal Menempel di Atas (Rata Top)
+      photoGrid.className = 'flex flex-col items-center justify-start gap-4 w-full';
 
       let imgHeightClass = 'h-[110mm]';
       if (count === 1) {
-        imgHeightClass = 'h-[160mm]';
+        imgHeightClass = 'h-[150mm]';
       } else if (count === 2) {
         imgHeightClass = 'h-[105mm]';
       } else if (count === 3) {
-        imgHeightClass = 'h-[72mm]';
+        imgHeightClass = 'h-[70mm]';
       } else if (count >= 4) {
-        imgHeightClass = 'h-[52mm]';
+        imgHeightClass = 'h-[50mm]';
       }
 
-      photosBase64OrUrls.forEach((src, idx) => {
+      photosBase64OrUrls.forEach((src) => {
         const div = document.createElement('div');
-        div.className = 'border p-2 text-center bg-white w-full max-w-[175mm] flex flex-col items-center justify-center';
+        div.className = 'border p-2 bg-white w-full max-w-[175mm] flex justify-center items-center';
         div.innerHTML = `
-          <img src="${fixImageUrl(src)}" class="w-full ${imgHeightClass} object-contain rounded mb-1 border bg-gray-50"/>
-          <span class="text-xs font-bold text-gray-700">Foto ${idx + 1}</span>
+          <img src="${fixImageUrl(src)}" class="w-full ${imgHeightClass} object-contain rounded border bg-gray-50"/>
         `;
         photoGrid.appendChild(div);
       });
